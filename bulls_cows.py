@@ -24,17 +24,26 @@ def get_response(guess, secret):
   return (bulls, cows)
 
 
-class RandomSolver:
+class Solver:
 
   def __init__(self):
-    self.possibilities = PERMUTATIONS
+    self.possible_secrets = PERMUTATIONS
 
   def get_guess(self):
-    return random.choice(self.possibilities)
+    raise NotImplementedError
 
-  def update(self, guess, response):
-    self.possibilities = [p for p in self.possibilities
-                          if get_response(guess, p) == response]
+  def update_response(self, guess, response):
+    raise NotImplementedError
+
+
+class RandomSolver(Solver):
+
+  def get_guess(self):
+    return random.choice(self.possible_secrets)
+
+  def update_response(self, guess, response):
+    self.possible_secrets = [s for s in self.possible_secrets
+                             if get_response(guess, s) == response]
 
 
 def solve(solver_class, secret):
@@ -45,7 +54,7 @@ def solve(solver_class, secret):
     if response[0] == LENGTH:
       return move_count
     else:
-      solver.update(guess, response)
+      solver.update_response(guess, response)
 
 
 def batch_solve(solver_class, secrets):
