@@ -57,8 +57,7 @@ def solve(solver_class, possible_secrets, secret, verbose=False):
     guess = solver.get_guess()
     if guess == secret:
       if verbose:
-        concat_secret = ''.join(str(s) for s in secret)
-        print('{} in {:d} moves'.format(concat_secret, move_count))
+        print('{} in {:d} moves'.format(secret, move_count))
       return move_count
     else:
       solver.update_response(guess, get_response(guess, secret))
@@ -69,24 +68,26 @@ def batch_solve(solver_class, possible_secrets, secrets, verbose=False):
 
 
 def main():
+  valid_solvers = {s.__name__: s for s in (MiddleSolver, RandomSolver)}
+
   parser = ArgumentParser(description='Bulls and cows solver')
-  parser.add_argument('-a', '--alphabet', default=10, type=int,
+  parser.add_argument('-a', '--alen', metavar='len', default=10, type=int,
                       help='alphabet length (default: %(default)s)')
-  parser.add_argument('-l', '--length', default=4, type=int,
-                      help='secret length (default: %(default)s)')
-  parser.add_argument('-n', '--num', type=int,
-                      help='number of secrets (default: all possible secrets)')
-  parser.add_argument('-s', '--solver', default='RandomSolver',
-                      choices=('MiddleSolver', 'RandomSolver'),
+  parser.add_argument('-c', '--class', metavar='class', dest='solver_class',
+                      default='RandomSolver', choices=valid_solvers.keys(),
                       help='solver class name (default: %(default)s)')
-  parser.add_argument('-v', '--verbose', action='count',
+  parser.add_argument('-n', '--num', metavar='num', type=int,
+                      help='number of secrets (default: all possible secrets)')
+  parser.add_argument('-s', '--slen', metavar='len', default=4, type=int,
+                      help='secret length (default: %(default)s)')
+  parser.add_argument('-v', '--verbose', action='count', default=0,
                       help='verbose output (-vv for very verbose)')
 
   args = parser.parse_args()
-  alphabet = tuple(range(args.alphabet))
-  secret_length = args.length
+  alphabet = tuple(range(args.alen))
+  secret_length = args.slen
   num_secrets = args.num
-  solver_class = getattr(__import__(__name__), args.solver)
+  solver_class = valid_solvers[args.solver_class]
   verbose = args.verbose
 
   possible_secrets = tuple(itertools.permutations(alphabet, secret_length))
