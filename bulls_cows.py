@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Nikita Kouevda
-# 2014/11/26
+# 2014/11/27
 
 from argparse import ArgumentParser
 import itertools
@@ -53,14 +53,12 @@ class RandomSolver(Solver):
 
 def solve(solver_class, possible_secrets, secret):
   solver = solver_class(possible_secrets)
-  secret_length = len(secret)
   for move_count in itertools.count(1):
     guess = solver.get_guess()
-    response = get_response(guess, secret)
-    if response[0] == secret_length:
+    if guess == secret:
       return move_count
     else:
-      solver.update_response(guess, response)
+      solver.update_response(guess, get_response(guess, secret))
 
 
 def batch_solve(solver_class, possible_secrets, secrets):
@@ -73,6 +71,8 @@ def main():
                       help='alphabet length (default: %(default)s)')
   parser.add_argument('-l', '--length', default=4, type=int,
                       help='secret length (default: %(default)s)')
+  parser.add_argument('-n', '--num', type=int,
+                      help='number of secrets (default: all possible secrets)')
   parser.add_argument('-s', '--solver', default='RandomSolver',
                       choices=('MiddleSolver', 'RandomSolver'),
                       help='solver class name (default: %(default)s)')
@@ -80,15 +80,24 @@ def main():
   args = parser.parse_args()
   alphabet = tuple(range(args.alphabet))
   secret_length = args.length
+  num_secrets = args.num
   solver_class = getattr(__import__(__name__), args.solver)
 
   possible_secrets = tuple(itertools.permutations(alphabet, secret_length))
+  shuffled_secrets = list(possible_secrets)
+  random.shuffle(shuffled_secrets)
+  secrets_cycle = itertools.cycle(shuffled_secrets)
+  if num_secrets is None:
+    num_secrets = len(possible_secrets)
+  print('{:d} secrets, secret length {:d}, alphabet length {:d}, {}'.format(
+      num_secrets, secret_length, len(alphabet), solver_class.__name__))
+
   num_threads = multiprocessing.cpu_count()
-  batch_size = (len(possible_secrets) + num_threads - 1) // num_threads
+  batch_size = (num_secrets + num_threads - 1) // num_threads
   pool = multiprocessing.Pool()
   results = []
   for i in range(num_threads):
-    batch = possible_secrets[i * batch_size:(i + 1) * batch_size]
+    batch = [next(secrets_cycle) for _ in range(batch_size)]
     results.append(pool.apply_async(batch_solve, args=(
         solver_class, possible_secrets, batch)))
   pool.close()
