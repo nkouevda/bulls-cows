@@ -1,5 +1,5 @@
 <!-- Nikita Kouevda -->
-<!-- 2014/11/23 -->
+<!-- 2014/11/27 -->
 
 # bulls-cows
 
@@ -7,9 +7,25 @@
 
 ## Usage
 
-To run the solver over every possible input:
+```bash
+./bulls_cows.py [-h] [-a len] [-c class] [-n num] [-s len] [-v]
+```
 
-    ./bulls_cows.py
+## Examples
+
+To run with the default configuration (alphabet length `10`, secret length `4`,
+all possible secrets, `RandomSolver`):
+
+```bash
+./bulls_cows.py
+```
+
+To run with a different configuration (e.g. alphabet length `20`, secret length
+`3`, `10` secrets, `MiddleSolver`, very verbose output):
+
+```bash
+./bulls_cows.py -a 20 -s 3 -n 10 -c MiddleSolver -vv
+```
 
 ## License
 
