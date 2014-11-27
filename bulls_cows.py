@@ -51,18 +51,21 @@ class RandomSolver(Solver):
     return random.choice(self.possible_secrets)
 
 
-def solve(solver_class, possible_secrets, secret):
+def solve(solver_class, possible_secrets, secret, verbose=False):
   solver = solver_class(possible_secrets)
   for move_count in itertools.count(1):
     guess = solver.get_guess()
     if guess == secret:
+      if verbose:
+        concat_secret = ''.join(str(s) for s in secret)
+        print('{} in {:d} moves'.format(concat_secret, move_count))
       return move_count
     else:
       solver.update_response(guess, get_response(guess, secret))
 
 
-def batch_solve(solver_class, possible_secrets, secrets):
-  return [solve(solver_class, possible_secrets, secret) for secret in secrets]
+def batch_solve(solver_class, possible_secrets, secrets, verbose=False):
+  return [solve(solver_class, possible_secrets, s, verbose) for s in secrets]
 
 
 def main():
@@ -76,12 +79,15 @@ def main():
   parser.add_argument('-s', '--solver', default='RandomSolver',
                       choices=('MiddleSolver', 'RandomSolver'),
                       help='solver class name (default: %(default)s)')
+  parser.add_argument('-v', '--verbose', action='count',
+                      help='verbose output (-vv for very verbose)')
 
   args = parser.parse_args()
   alphabet = tuple(range(args.alphabet))
   secret_length = args.length
   num_secrets = args.num
   solver_class = getattr(__import__(__name__), args.solver)
+  verbose = args.verbose
 
   possible_secrets = tuple(itertools.permutations(alphabet, secret_length))
   shuffled_secrets = list(possible_secrets)
@@ -89,8 +95,12 @@ def main():
   secrets_cycle = itertools.cycle(shuffled_secrets)
   if num_secrets is None:
     num_secrets = len(possible_secrets)
-  print('{:d} secrets, secret length {:d}, alphabet length {:d}, {}'.format(
-      num_secrets, secret_length, len(alphabet), solver_class.__name__))
+  if verbose:
+    print('alphabet length: {:d}'.format(len(alphabet)))
+    print('secret length: {:d}'.format(secret_length))
+    print('possible secrets: {:d}'.format(len(possible_secrets)))
+    print('secrets to solve: {:d}'.format(num_secrets))
+    print('solver class: {}'.format(solver_class.__name__))
 
   num_threads = multiprocessing.cpu_count()
   batch_size = (num_secrets + num_threads - 1) // num_threads
@@ -99,7 +109,7 @@ def main():
   for i in range(num_threads):
     batch = [next(secrets_cycle) for _ in range(batch_size)]
     results.append(pool.apply_async(batch_solve, args=(
-        solver_class, possible_secrets, batch)))
+        solver_class, possible_secrets, batch, verbose > 1)))
   pool.close()
   pool.join()
 
