@@ -29,17 +29,26 @@ class Solver:
     raise NotImplementedError
 
   def update_response(self, guess, response):
-    raise NotImplementedError
+    """Filter out all secrets that would not have yielded the given response.
+    """
+    self.possible_secrets = [s for s in self.possible_secrets
+                             if get_response(guess, s) == response]
+
+
+class MiddleSolver(Solver):
+
+  def get_guess(self):
+    """Return the middle possible secret.
+    """
+    return self.possible_secrets[len(self.possible_secrets) >> 1]
 
 
 class RandomSolver(Solver):
 
   def get_guess(self):
+    """Return a random possible secret.
+    """
     return random.choice(self.possible_secrets)
-
-  def update_response(self, guess, response):
-    self.possible_secrets = [s for s in self.possible_secrets
-                             if get_response(guess, s) == response]
 
 
 def solve(solver_class, possible_secrets, secret):
@@ -60,13 +69,12 @@ def batch_solve(solver_class, possible_secrets, secrets):
 
 def main():
   parser = ArgumentParser(description='Bulls and cows solver')
-
   parser.add_argument('-a', '--alphabet', default=10, type=int,
                       help='alphabet length (default: %(default)s)')
   parser.add_argument('-l', '--length', default=4, type=int,
                       help='secret length (default: %(default)s)')
   parser.add_argument('-s', '--solver', default='RandomSolver',
-                      choices=('RandomSolver',),
+                      choices=('MiddleSolver', 'RandomSolver'),
                       help='solver class name (default: %(default)s)')
 
   args = parser.parse_args()
