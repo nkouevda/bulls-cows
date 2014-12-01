@@ -8,7 +8,7 @@
 ## Usage
 
 ```bash
-./bulls_cows.py [-h] [-a len] [-c class] [-n num] [-s len] [-v]
+./bulls_cows.py [-h] [-a len] [-c class] [-m] [-n num] [-s len] [-v]
 ```
 
 ## Examples
