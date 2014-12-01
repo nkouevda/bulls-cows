@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Nikita Kouevda
-# 2014/11/27
+# 2014/12/01
 
 from argparse import ArgumentParser
 import itertools
@@ -76,6 +76,8 @@ def main():
   parser.add_argument('-c', '--class', metavar='class', dest='solver_class',
                       default='RandomSolver', choices=valid_solvers.keys(),
                       help='solver class name (default: %(default)s)')
+  parser.add_argument('-m', '--multiprocess', action='store_true',
+                      help='parallelize computation via multiprocessing')
   parser.add_argument('-n', '--num', metavar='num', type=int,
                       help='number of secrets (default: all possible secrets)')
   parser.add_argument('-s', '--slen', metavar='len', default=4, type=int,
@@ -88,7 +90,9 @@ def main():
   secret_length = args.slen
   num_secrets = args.num
   solver_class = valid_solvers[args.solver_class]
+  multiprocess = args.multiprocess
   verbose = args.verbose
+  very_verbose = verbose > 1
 
   possible_secrets = tuple(itertools.permutations(alphabet, secret_length))
   shuffled_secrets = list(possible_secrets)
@@ -103,18 +107,23 @@ def main():
     print('secrets to solve: {:d}'.format(num_secrets))
     print('solver class: {}'.format(solver_class.__name__))
 
-  num_threads = multiprocessing.cpu_count()
-  batch_size = (num_secrets + num_threads - 1) // num_threads
-  pool = multiprocessing.Pool()
-  results = []
-  for i in range(num_threads):
-    batch = [next(secrets_cycle) for _ in range(batch_size)]
-    results.append(pool.apply_async(batch_solve, args=(
-        solver_class, possible_secrets, batch, verbose > 1)))
-  pool.close()
-  pool.join()
+  if multiprocess:
+    num_threads = multiprocessing.cpu_count()
+    batch_size = (num_secrets + num_threads - 1) // num_threads
+    pool = multiprocessing.Pool()
+    results = []
+    for i in range(num_threads):
+      batch = [next(secrets_cycle) for _ in range(batch_size)]
+      results.append(pool.apply_async(batch_solve, args=(
+          solver_class, possible_secrets, batch, very_verbose)))
+    pool.close()
+    pool.join()
+    move_counts = [x for result in results for x in result.get()]
+  else:
+    batch = [next(secrets_cycle) for _ in range(num_secrets)]
+    move_counts = batch_solve(
+        solver_class, possible_secrets, batch, very_verbose)
 
-  move_counts = [x for result in results for x in result.get()]
   print('µ = {:f}'.format(statistics.mean(move_counts)))
   print('s = {:f}'.format(statistics.stdev(move_counts)))
 
