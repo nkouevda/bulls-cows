@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 
-# Nikita Kouevda
-# 2014/12/01
-
 from argparse import ArgumentParser
 import itertools
 import multiprocessing
 import random
 import statistics
-
 
 def get_response(guess, secret):
   bulls, cows = 0, 0
@@ -18,7 +14,6 @@ def get_response(guess, secret):
     elif g in secret:
       cows += 1
   return (bulls, cows)
-
 
 class Solver:
 
@@ -34,7 +29,6 @@ class Solver:
     self.possible_secrets = [s for s in self.possible_secrets
                              if get_response(guess, s) == response]
 
-
 class MiddleSolver(Solver):
 
   def get_guess(self):
@@ -42,14 +36,12 @@ class MiddleSolver(Solver):
     """
     return self.possible_secrets[len(self.possible_secrets) >> 1]
 
-
 class RandomSolver(Solver):
 
   def get_guess(self):
     """Return a random possible secret.
     """
     return random.choice(self.possible_secrets)
-
 
 def solve(solver_class, possible_secrets, secret, verbose=False):
   solver = solver_class(possible_secrets)
@@ -62,10 +54,8 @@ def solve(solver_class, possible_secrets, secret, verbose=False):
     else:
       solver.update_response(guess, get_response(guess, secret))
 
-
 def batch_solve(solver_class, possible_secrets, secrets, verbose=False):
   return [solve(solver_class, possible_secrets, s, verbose) for s in secrets]
-
 
 def main():
   valid_solvers = {s.__name__: s for s in (MiddleSolver, RandomSolver)}
@@ -126,7 +116,6 @@ def main():
 
   print('µ = {:f}'.format(statistics.mean(move_counts)))
   print('s = {:f}'.format(statistics.stdev(move_counts)))
-
 
 if __name__ == '__main__':
   main()
