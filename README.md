@@ -17,7 +17,7 @@ optional arguments:
   -m, --multiprocess    parallelize computation via multiprocessing
   -n num, --num num     number of secrets (default: all possible secrets)
   -s len, --slen len    secret length (default: 4)
-  -v, --verbose         verbose output (-vv for very verbose)
+  -v, --verbose         verbose output
 ```
 
 ## Examples
@@ -28,9 +28,9 @@ all possible secrets, `RandomSolver`, single process):
     python3 -m bulls_cows.bulls_cows
 
 To run with a different configuration (e.g. alphabet length `20`, secret length
-`3`, `10` secrets, `MiddleSolver`, multiprocessing, very verbose output):
+`3`, `10` secrets, `MiddleSolver`, multiprocessing, verbose output):
 
-    python3 -m bulls_cows.bulls_cows -a 20 -s 3 -n 10 -c MiddleSolver -m -vv
+    python3 -m bulls_cows.bulls_cows -a 20 -s 3 -n 10 -c MiddleSolver -m -v
 
 ## License
 

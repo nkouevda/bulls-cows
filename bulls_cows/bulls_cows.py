@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
-
 from argparse import ArgumentParser
 import itertools
+import logging
 import multiprocessing
 import random
-import statistics
 
 def get_response(guess, secret):
   bulls, cows = 0, 0
@@ -15,7 +13,7 @@ def get_response(guess, secret):
       cows += 1
   return (bulls, cows)
 
-class Solver:
+class Solver(object):
 
   def __init__(self, possible_secrets):
     self.possible_secrets = possible_secrets
@@ -43,19 +41,18 @@ class RandomSolver(Solver):
     """
     return random.choice(self.possible_secrets)
 
-def solve(solver_class, possible_secrets, secret, verbose=False):
+def solve(solver_class, possible_secrets, secret):
   solver = solver_class(possible_secrets)
   for move_count in itertools.count(1):
     guess = solver.get_guess()
     if guess == secret:
-      if verbose:
-        print('{} in {:d} moves'.format(secret, move_count))
+      logging.debug('%s in %s moves', secret, move_count)
       return move_count
     else:
       solver.update_response(guess, get_response(guess, secret))
 
-def batch_solve(solver_class, possible_secrets, secrets, verbose=False):
-  return [solve(solver_class, possible_secrets, s, verbose) for s in secrets]
+def batch_solve(solver_class, possible_secrets, secrets):
+  return [solve(solver_class, possible_secrets, s) for s in secrets]
 
 def main():
   valid_solvers = {s.__name__: s for s in (MiddleSolver, RandomSolver)}
@@ -72,8 +69,8 @@ def main():
                       help='number of secrets (default: all possible secrets)')
   parser.add_argument('-s', '--slen', metavar='len', default=4, type=int,
                       help='secret length (default: %(default)s)')
-  parser.add_argument('-v', '--verbose', action='count', default=0,
-                      help='verbose output (-vv for very verbose)')
+  parser.add_argument('-v', '--verbose', action='store_true',
+                      help='verbose output')
 
   args = parser.parse_args()
   alphabet = tuple(range(args.alen))
@@ -82,7 +79,9 @@ def main():
   solver_class = valid_solvers[args.solver_class]
   multiprocess = args.multiprocess
   verbose = args.verbose
-  very_verbose = verbose > 1
+
+  logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s',
+                      level=logging.DEBUG if verbose else logging.INFO)
 
   possible_secrets = tuple(itertools.permutations(alphabet, secret_length))
   shuffled_secrets = list(possible_secrets)
@@ -90,12 +89,11 @@ def main():
   secrets_cycle = itertools.cycle(shuffled_secrets)
   if num_secrets is None:
     num_secrets = len(possible_secrets)
-  if verbose:
-    print('alphabet length: {:d}'.format(len(alphabet)))
-    print('secret length: {:d}'.format(secret_length))
-    print('possible secrets: {:d}'.format(len(possible_secrets)))
-    print('secrets to solve: {:d}'.format(num_secrets))
-    print('solver class: {}'.format(solver_class.__name__))
+  logging.debug('alphabet length: %s', len(alphabet))
+  logging.debug('secret length: %s', secret_length)
+  logging.debug('possible secrets: %s', len(possible_secrets))
+  logging.debug('secrets to solve: %s', num_secrets)
+  logging.debug('solver class: %s', solver_class.__name__)
 
   if multiprocess:
     num_threads = multiprocessing.cpu_count()
@@ -105,17 +103,18 @@ def main():
     for i in range(num_threads):
       batch = [next(secrets_cycle) for _ in range(batch_size)]
       results.append(pool.apply_async(batch_solve, args=(
-          solver_class, possible_secrets, batch, very_verbose)))
+          solver_class, possible_secrets, batch)))
     pool.close()
     pool.join()
     move_counts = [x for result in results for x in result.get()]
   else:
     batch = [next(secrets_cycle) for _ in range(num_secrets)]
-    move_counts = batch_solve(
-        solver_class, possible_secrets, batch, very_verbose)
+    move_counts = batch_solve(solver_class, possible_secrets, batch)
 
-  print('µ = {:f}'.format(statistics.mean(move_counts)))
-  print('s = {:f}'.format(statistics.stdev(move_counts)))
+  mean = 1.0 * sum(move_counts) / len(move_counts)
+  logging.info('mean: %.6f', mean)
+  stdev = (sum((c - mean) ** 2 for c in move_counts) / len(move_counts)) ** 0.5
+  logging.info('stdev: %.6f', stdev)
 
 if __name__ == '__main__':
   main()
