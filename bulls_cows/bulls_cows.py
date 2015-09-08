@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+import argparse
 import itertools
 import logging
 import multiprocessing
@@ -57,7 +57,7 @@ def batch_solve(solver_class, possible_secrets, secrets):
 def main():
   valid_solvers = {s.__name__: s for s in (MiddleSolver, RandomSolver)}
 
-  parser = ArgumentParser(description='Bulls and cows solver')
+  parser = argparse.ArgumentParser(description='Bulls and cows solver')
   parser.add_argument('-a', '--alen', metavar='len', default=10, type=int,
                       help='alphabet length (default: %(default)s)')
   parser.add_argument('-c', '--class', metavar='class', dest='solver_class',
@@ -101,14 +101,14 @@ def main():
     pool = multiprocessing.Pool()
     results = []
     for i in range(num_threads):
-      batch = [next(secrets_cycle) for _ in range(batch_size)]
+      batch = list(itertools.islice(secrets_cycle, batch_size))
       results.append(pool.apply_async(batch_solve, args=(
           solver_class, possible_secrets, batch)))
     pool.close()
     pool.join()
     move_counts = [x for result in results for x in result.get()]
   else:
-    batch = [next(secrets_cycle) for _ in range(num_secrets)]
+    batch = list(itertools.islice(secrets_cycle, num_secrets))
     move_counts = batch_solve(solver_class, possible_secrets, batch)
 
   mean = 1.0 * sum(move_counts) / len(move_counts)
