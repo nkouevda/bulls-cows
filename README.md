@@ -25,12 +25,12 @@ optional arguments:
 To run with the default configuration (alphabet length `10`, secret length `4`,
 all possible secrets, `RandomSolver`, single process):
 
-    ./bulls_cows.py
+    python3 -m bulls_cows.bulls_cows
 
 To run with a different configuration (e.g. alphabet length `20`, secret length
 `3`, `10` secrets, `MiddleSolver`, multiprocessing, very verbose output):
 
-    ./bulls_cows.py -a 20 -s 3 -n 10 -c MiddleSolver -m -vv
+    python3 -m bulls_cows.bulls_cows -a 20 -s 3 -n 10 -c MiddleSolver -m -vv
 
 ## License
 
