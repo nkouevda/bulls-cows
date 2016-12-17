@@ -4,6 +4,7 @@ import logging
 import multiprocessing
 import random
 
+
 def get_response(guess, secret):
   bulls, cows = 0, 0
   for g, s in zip(guess, secret):
@@ -12,6 +13,7 @@ def get_response(guess, secret):
     elif g in secret:
       cows += 1
   return (bulls, cows)
+
 
 class Solver(object):
 
@@ -24,8 +26,9 @@ class Solver(object):
   def update_response(self, guess, response):
     """Filter out all secrets that would not have yielded the given response.
     """
-    self.possible_secrets = [s for s in self.possible_secrets
-                             if get_response(guess, s) == response]
+    self.possible_secrets = [
+        s for s in self.possible_secrets if get_response(guess, s) == response]
+
 
 class MiddleSolver(Solver):
 
@@ -34,12 +37,14 @@ class MiddleSolver(Solver):
     """
     return self.possible_secrets[len(self.possible_secrets) >> 1]
 
+
 class RandomSolver(Solver):
 
   def get_guess(self):
     """Return a random possible secret.
     """
     return random.choice(self.possible_secrets)
+
 
 def solve(solver_class, possible_secrets, secret):
   solver = solver_class(possible_secrets)
@@ -51,8 +56,10 @@ def solve(solver_class, possible_secrets, secret):
     else:
       solver.update_response(guess, get_response(guess, secret))
 
+
 def batch_solve(solver_class, possible_secrets, secrets):
   return [solve(solver_class, possible_secrets, s) for s in secrets]
+
 
 def main():
   valid_solvers = {s.__name__: s for s in (MiddleSolver, RandomSolver)}
