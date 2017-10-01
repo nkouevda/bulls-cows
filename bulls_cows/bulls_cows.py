@@ -15,7 +15,20 @@ def get_response(guess, secret):
   return (bulls, cows)
 
 
+_solver_classes = set()
+
+
+class SolverRegistry(type):
+
+  def __init__(cls, name, bases, namespace):
+    super(SolverRegistry, cls).__init__(name, bases, namespace)
+    _solver_classes.add(cls)
+    _solver_classes.difference_update(bases)
+
+
 class Solver(object):
+
+  __metaclass__ = SolverRegistry
 
   def __init__(self, possible_secrets):
     self.possible_secrets = possible_secrets
@@ -62,13 +75,13 @@ def batch_solve(solver_class, possible_secrets, secrets):
 
 
 def main():
-  valid_solvers = {s.__name__: s for s in (MiddleSolver, RandomSolver)}
+  solvers = {s.__name__: s for s in _solver_classes}
 
   parser = argparse.ArgumentParser(description='Bulls and cows solver')
   parser.add_argument('-a', '--alen', metavar='len', default=10, type=int,
                       help='alphabet length (default: %(default)s)')
   parser.add_argument('-c', '--class', metavar='class', dest='solver_class',
-                      default='RandomSolver', choices=valid_solvers.keys(),
+                      default='RandomSolver', choices=solvers.keys(),
                       help='solver class name (default: %(default)s)')
   parser.add_argument('-m', '--multiprocess', action='store_true',
                       help='parallelize computation via multiprocessing')
@@ -83,7 +96,7 @@ def main():
   alphabet = tuple(range(args.alen))
   secret_length = args.slen
   num_secrets = args.num
-  solver_class = valid_solvers[args.solver_class]
+  solver_class = solvers[args.solver_class]
   multiprocess = args.multiprocess
   verbose = args.verbose
 
