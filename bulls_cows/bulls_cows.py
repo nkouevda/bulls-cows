@@ -40,7 +40,8 @@ class Solver(object):
     """Filter out all secrets that would not have yielded the given response.
     """
     self.possible_secrets = [
-        s for s in self.possible_secrets if get_response(guess, s) == response]
+        secret for secret in self.possible_secrets
+        if get_response(guess, secret) == response]
 
 
 class MiddleSolver(Solver):
@@ -71,26 +72,53 @@ def solve(solver_class, possible_secrets, secret):
 
 
 def batch_solve(solver_class, possible_secrets, secrets):
-  return [solve(solver_class, possible_secrets, s) for s in secrets]
+  return [solve(solver_class, possible_secrets, secret) for secret in secrets]
 
 
 def main():
-  solvers = {s.__name__: s for s in _solver_classes}
+  solvers = {solver.__name__: solver for solver in _solver_classes}
 
-  parser = argparse.ArgumentParser(description='Bulls and cows solver')
-  parser.add_argument('-a', '--alen', metavar='len', default=10, type=int,
-                      help='alphabet length (default: %(default)s)')
-  parser.add_argument('-c', '--class', metavar='class', dest='solver_class',
-                      default='RandomSolver', choices=solvers.keys(),
-                      help='solver class name (default: %(default)s)')
-  parser.add_argument('-m', '--multiprocess', action='store_true',
-                      help='parallelize computation via multiprocessing')
-  parser.add_argument('-n', '--num', metavar='num', type=int,
-                      help='number of secrets (default: all possible secrets)')
-  parser.add_argument('-s', '--slen', metavar='len', default=4, type=int,
-                      help='secret length (default: %(default)s)')
-  parser.add_argument('-v', '--verbose', action='store_true',
-                      help='verbose output')
+  parser = argparse.ArgumentParser(
+      usage='%(prog)s [<options>]',
+      description='Bulls and cows solver')
+  parser.add_argument(
+      '-a',
+      '--alen',
+      type=int,
+      default=10,
+      help='alphabet length; default: %(default)s',
+      metavar='<len>')
+  parser.add_argument(
+      '-c',
+      '--class',
+      dest='solver_class',
+      choices=solvers.keys(),
+      default='RandomSolver',
+      help='solver class name; default: %(default)s',
+      metavar='<class>')
+  parser.add_argument(
+      '-m',
+      '--multiprocess',
+      action='store_true',
+      help='parallelize computation via multiprocessing')
+  parser.add_argument(
+      '-n',
+      '--num',
+      type=int,
+      help='number of secrets; default: all possible secrets',
+      metavar='<num>')
+  parser.add_argument(
+      '-s',
+      '--slen',
+      type=int,
+      default=4,
+      help='secret length; default: %(default)s',
+      metavar='<len>')
+  parser.add_argument(
+      '-v',
+      '--verbose',
+      action='store_true',
+      help='verbose output')
 
   args = parser.parse_args()
   alphabet = tuple(range(args.alen))
@@ -100,8 +128,9 @@ def main():
   multiprocess = args.multiprocess
   verbose = args.verbose
 
-  logging.basicConfig(format='%(asctime)s: %(levelname)s: %(message)s',
-                      level=logging.DEBUG if verbose else logging.INFO)
+  logging.basicConfig(
+      format='%(asctime)s: %(levelname)s: %(message)s',
+      level=logging.DEBUG if verbose else logging.INFO)
 
   possible_secrets = tuple(itertools.permutations(alphabet, secret_length))
   shuffled_secrets = list(possible_secrets)
@@ -132,9 +161,10 @@ def main():
     move_counts = batch_solve(solver_class, possible_secrets, batch)
 
   mean = 1.0 * sum(move_counts) / len(move_counts)
-  logging.info('mean: %.6f', mean)
+  print('mean: %.6f' % mean)
   stdev = (sum((c - mean) ** 2 for c in move_counts) / len(move_counts)) ** 0.5
-  logging.info('stdev: %.6f', stdev)
+  print('stdev: %.6f' % stdev)
+
 
 if __name__ == '__main__':
   main()
