@@ -4,67 +4,11 @@ import logging
 import multiprocessing
 import random
 
-
-def get_response(guess, secret):
-    bulls, cows = 0, 0
-    for g, s in zip(guess, secret):
-        if g == s:
-            bulls += 1
-        elif g in secret:
-            cows += 1
-    return (bulls, cows)
-
-
-_solver_classes = set()
-
-
-class Solver(object):
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        _solver_classes.add(cls)
-
-    def __init__(self, possible_secrets):
-        self.possible_secrets = possible_secrets
-
-    def get_guess(self):
-        raise NotImplementedError
-
-    def update_response(self, guess, response):
-        """Filter out all secrets that would not have yielded the given response."""
-        self.possible_secrets = [
-            secret for secret in self.possible_secrets if get_response(guess, secret) == response
-        ]
-
-
-class MiddleSolver(Solver):
-    def get_guess(self):
-        """Return the middle possible secret."""
-        return self.possible_secrets[len(self.possible_secrets) >> 1]
-
-
-class RandomSolver(Solver):
-    def get_guess(self):
-        """Return a random possible secret."""
-        return random.choice(self.possible_secrets)
-
-
-def solve(solver_class, possible_secrets, secret):
-    solver = solver_class(possible_secrets)
-    for move_count in itertools.count(1):
-        guess = solver.get_guess()
-        if guess == secret:
-            logging.debug("solved %s in %s moves", secret, move_count)
-            return move_count
-        else:
-            solver.update_response(guess, get_response(guess, secret))
-
-
-def batch_solve(solver_class, possible_secrets, secrets):
-    return [solve(solver_class, possible_secrets, secret) for secret in secrets]
+from . import solvers
 
 
 def main():
-    solvers = {solver.__name__: solver for solver in _solver_classes}
+    all_solvers = {solver.__name__: solver for solver in solvers.solver_classes}
 
     parser = argparse.ArgumentParser(
         prog="bulls-cows",
@@ -84,7 +28,7 @@ def main():
         "-c",
         "--class",
         dest="solver_class",
-        choices=solvers.keys(),
+        choices=all_solvers.keys(),
         default="RandomSolver",
         help="solver class name",
     )
@@ -120,7 +64,7 @@ def main():
     alphabet = tuple(range(args.alen))
     secret_length = args.slen
     num_secrets = args.num
-    solver_class = solvers[args.solver_class]
+    solver_class = all_solvers[args.solver_class]
     multiprocess = args.multiprocess
     verbose = args.verbose
 
@@ -149,14 +93,14 @@ def main():
         for i in range(num_threads):
             batch = list(itertools.islice(secrets_cycle, batch_size))
             results.append(
-                pool.apply_async(batch_solve, args=(solver_class, possible_secrets, batch))
+                pool.apply_async(solvers.batch_solve, args=(solver_class, possible_secrets, batch))
             )
         pool.close()
         pool.join()
         move_counts = [x for result in results for x in result.get()]
     else:
         batch = list(itertools.islice(secrets_cycle, num_secrets))
-        move_counts = batch_solve(solver_class, possible_secrets, batch)
+        move_counts = solvers.batch_solve(solver_class, possible_secrets, batch)
 
     mean = 1.0 * sum(move_counts) / len(move_counts)
     print("mean: %.6f" % mean)
