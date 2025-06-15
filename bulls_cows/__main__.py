@@ -53,7 +53,7 @@ def solve(solver_class, possible_secrets, secret):
     for move_count in itertools.count(1):
         guess = solver.get_guess()
         if guess == secret:
-            logging.debug("%s in %s moves", secret, move_count)
+            logging.debug("solved %s in %s moves", secret, move_count)
             return move_count
         else:
             solver.update_response(guess, get_response(guess, secret))
@@ -135,11 +135,11 @@ def main():
     secrets_cycle = itertools.cycle(shuffled_secrets)
     if num_secrets is None:
         num_secrets = len(possible_secrets)
-    logging.debug("alphabet length: %s", len(alphabet))
-    logging.debug("secret length: %s", secret_length)
-    logging.debug("possible secrets: %s", len(possible_secrets))
-    logging.debug("secrets to solve: %s", num_secrets)
-    logging.debug("solver class: %s", solver_class.__name__)
+    logging.info("alphabet length: %s", len(alphabet))
+    logging.info("secret length: %s", secret_length)
+    logging.info("possible secrets: %s", len(possible_secrets))
+    logging.info("secrets to solve: %s", num_secrets)
+    logging.info("solver class: %s", solver_class.__name__)
 
     if multiprocess:
         num_threads = multiprocessing.cpu_count()
