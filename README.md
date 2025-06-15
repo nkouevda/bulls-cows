@@ -12,7 +12,7 @@ Bulls and cows solver
 options:
   -h, --help            show this help message and exit
   -a, --alen <len>      alphabet length (default: 10)
-  -c, --class {MiddleSolver,RandomSolver}
+  -c, --class {FirstPossibleSecretSolver,LastPossibleSecretSolver,LeastCommonGuessedDigitSolver,MiddlePossibleSecretSolver,MostCommonRemainingDigitSolver,RandomSolver}
                         solver class name (default: RandomSolver)
   -m, --multiprocess    parallelize computation via multiprocessing (default: False)
   -n, --num <num>       number of secrets (default: all)
