@@ -5,19 +5,18 @@
 ## Usage
 
 ```
-usage: bulls_cows.py [-h] [-a len] [-c class] [-m] [-n num] [-s len] [-v]
+usage: bulls-cows [<options>]
 
 Bulls and cows solver
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -a len, --alen len    alphabet length (default: 10)
-  -c class, --class class
-                        solver class name (default: RandomSolver)
-  -m, --multiprocess    parallelize computation via multiprocessing
-  -n num, --num num     number of secrets (default: all possible secrets)
-  -s len, --slen len    secret length (default: 4)
-  -v, --verbose         verbose output
+options:
+  -h, --help           show this help message and exit
+  -a, --alen <len>     alphabet length (default: 10)
+  -c, --class <class>  solver class name (default: RandomSolver)
+  -m, --multiprocess   parallelize computation via multiprocessing (default: False)
+  -n, --num <num>      number of secrets (default: all)
+  -s, --slen <len>     secret length (default: 4)
+  -v, --verbose        verbose output (default: False)
 ```
 
 ## Examples

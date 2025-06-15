@@ -72,15 +72,17 @@ def main():
     solvers = {solver.__name__: solver for solver in _solver_classes}
 
     parser = argparse.ArgumentParser(
+        prog="bulls-cows",
         usage="%(prog)s [<options>]",
         description="Bulls and cows solver",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "-a",
         "--alen",
         type=int,
         default=10,
-        help="alphabet length; default: %(default)s",
+        help="alphabet length",
         metavar="<len>",
     )
     parser.add_argument(
@@ -89,7 +91,7 @@ def main():
         dest="solver_class",
         choices=solvers.keys(),
         default="RandomSolver",
-        help="solver class name; default: %(default)s",
+        help="solver class name",
         metavar="<class>",
     )
     parser.add_argument(
@@ -102,7 +104,7 @@ def main():
         "-n",
         "--num",
         type=int,
-        help="number of secrets; default: all possible secrets",
+        help="number of secrets",
         metavar="<num>",
     )
     parser.add_argument(
@@ -110,7 +112,7 @@ def main():
         "--slen",
         type=int,
         default=4,
-        help="secret length; default: %(default)s",
+        help="secret length",
         metavar="<len>",
     )
     parser.add_argument(
