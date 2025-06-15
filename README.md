@@ -10,13 +10,14 @@ usage: bulls-cows [<options>]
 Bulls and cows solver
 
 options:
-  -h, --help           show this help message and exit
-  -a, --alen <len>     alphabet length (default: 10)
-  -c, --class <class>  solver class name (default: RandomSolver)
-  -m, --multiprocess   parallelize computation via multiprocessing (default: False)
-  -n, --num <num>      number of secrets (default: all)
-  -s, --slen <len>     secret length (default: 4)
-  -v, --verbose        verbose output (default: False)
+  -h, --help            show this help message and exit
+  -a, --alen <len>      alphabet length (default: 10)
+  -c, --class {MiddleSolver,RandomSolver}
+                        solver class name (default: RandomSolver)
+  -m, --multiprocess    parallelize computation via multiprocessing (default: False)
+  -n, --num <num>       number of secrets (default: all)
+  -s, --slen <len>      secret length (default: 4)
+  -v, --verbose         verbose output (default: False)
 ```
 
 ## Examples

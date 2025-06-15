@@ -18,15 +18,10 @@ def get_response(guess, secret):
 _solver_classes = set()
 
 
-class SolverRegistry(type):
-    def __init__(cls, name, bases, namespace):
-        super(SolverRegistry, cls).__init__(name, bases, namespace)
-        _solver_classes.add(cls)
-        _solver_classes.difference_update(bases)
-
-
 class Solver(object):
-    __metaclass__ = SolverRegistry
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        _solver_classes.add(cls)
 
     def __init__(self, possible_secrets):
         self.possible_secrets = possible_secrets
@@ -92,7 +87,6 @@ def main():
         choices=solvers.keys(),
         default="RandomSolver",
         help="solver class name",
-        metavar="<class>",
     )
     parser.add_argument(
         "-m",
